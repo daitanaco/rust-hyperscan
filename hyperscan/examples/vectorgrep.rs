@@ -3,19 +3,18 @@
 
 // Build instructions:
 //
-//     cargo run --example simplegrep
+//     cargo run --example vectorgrep
 //
 // Usage:
 //
-//     ./simplegrep <pattern> <input file>
+//     ./vectorgrep <input file>
 //
 // Example:
 //
-//     ./simplegrep int simplegrep.c
+//     ./simplegrep input.csv
 //
 //
-
-use std::fs;
+use std::fs::*;
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
@@ -44,21 +43,29 @@ fn main() -> Result<()> {
     let pattern8 = r#"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b"#;
     let pattern9 = r#"\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})"#;
     let patterns = patterns!(pattern1, pattern2, pattern3, pattern4, pattern5, pattern6, pattern7, pattern8, pattern9; CASELESS | DOTALL | SOM_LEFTMOST);
-    let db: BlockDatabase = patterns.build().unwrap();
-    let input_data = fs::read_to_string(opt.input).with_context(|| "read input file")?;
+    let db: VectoredDatabase = patterns.build().unwrap();
     let scratch = db.alloc_scratch().with_context(|| "allocate scratch space")?;
-    println!("Scanning {} bytes with Hyperscan", input_data.len());
-    db
-        .scan(&input_data, &scratch, |id, from, to, flags| {
-            println!(
-                "Match for pattern \"{}\" at offset {}..{}: {}",
-                id,
-                from,
-                to,
-                &input_data[from as usize..to as usize]
-            );
-
-            Matching::Continue
-        })
-        .with_context(|| "scan input buffer")
+    let mut matches = vec![];
+    let file = File::open(&opt.input)?;
+    let mut rdr = csv::Reader::from_reader(file);
+    for result in rdr.records() {
+        match result {
+            Ok(row) => {
+                db.scan(&row, &scratch, |id, from, to, flags| {
+                    matches.push(from..to);
+                    let s: String = row.into_iter().flat_map(|c|c.chars()).collect();
+                    println!(
+                        "Match for pattern \"{}\" at offset {}..{}: {}",
+                        id,
+                        from,
+                        to,
+                        &s[from as usize..to as usize]
+                    );
+                    Matching::Continue
+                }).unwrap();
+            },
+            Err(e) => println!("CSV read error: {}", e),
+        }
+    }
+    Ok(())
 }

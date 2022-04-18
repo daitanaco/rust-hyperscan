@@ -34,6 +34,7 @@ libc = "0.2"
 malloc_buf = "1.0"
 semver = "1"
 thiserror = "1.0"
+csv = "1.1.6"
 
 hyperscan-sys = { version = "0.2", path = "../hyperscan-sys" }
 futures = {version = "0.3.16", optional = true }
