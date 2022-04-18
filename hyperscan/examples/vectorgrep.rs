@@ -24,7 +24,7 @@ use hyperscan::prelude::*;
 use hyperscan::*;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "simplegrep", about = "An example search a given input file for a pattern.")]
+#[structopt(name = "vectorgrep", about = "An example search a given input file for a pattern set.")]
 struct Opt {
     /// Input file
     #[structopt(parse(from_os_str))]

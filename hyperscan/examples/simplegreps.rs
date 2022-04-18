@@ -7,7 +7,7 @@
 //
 // Usage:
 //
-//     ./simplegrep <pattern> <input file>
+//     ./simplegrep <input file>
 //
 // Example:
 //
@@ -25,7 +25,7 @@ use hyperscan::prelude::*;
 use hyperscan::*;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "simplegrep", about = "An example search a given input file for a pattern.")]
+#[structopt(name = "simplegrep", about = "An example search a given input file for a pattern set.")]
 struct Opt {
     /// Input file
     #[structopt(parse(from_os_str))]
